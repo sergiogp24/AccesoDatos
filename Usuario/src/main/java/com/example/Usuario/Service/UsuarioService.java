@@ -1,0 +1,109 @@
+package com.example.Usuario.Service;
+
+import com.example.Usuario.Modelo.Usuario;
+import com.example.Usuario.Repositories.UsuarioRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Optional;
+
+@Service
+public class UsuarioService {
+    @Autowired
+    UsuarioRepository usuarioRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    public Usuario crearUsuario(Usuario usuario){
+        if(usuario == null){
+            throw new IllegalStateException("El usuario viene vacio");
+        }
+        if(!usuarioRepository.existsByEmail(usuario.getEmail())){
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+            return usuarioRepository.save(usuario);
+
+        }else {
+            throw new IllegalStateException("El email ya existe");
+        }
+    }
+    public boolean comprobarEmail(String email){
+       if(!StringUtils.hasText(email)){
+           throw new IllegalStateException("El correo tiene que estar correcto");
+       }
+       if(usuarioRepository.existsByEmail(email)){
+           return true;
+       }else {
+           return false;
+       }
+    }
+    public boolean comprobarPassword(String password, String email){
+        Usuario usuario = usuarioRepository.getUsuarioByEmail(email);
+        return passwordEncoder.matches(password, usuario.getPassword());
+    }
+
+    public Usuario obtenerUsuarioEmail(String email){
+        Usuario usuario = usuarioRepository.getUsuarioByEmail(email);
+        return usuario;
+    }
+
+    @Transactional
+    public boolean eliminarUsuario(String email){
+        return usuarioRepository.deleteUsuarioById(email);
+    }
+
+    public ArrayList<Usuario> mostrarUsuarios(){
+        return usuarioRepository.searchAll();
+    }
+
+
+
+    @Transactional
+    public Usuario actualizarUsuario(Usuario usuario){
+
+        if(usuario == null) throw new IllegalArgumentException("Usuario nulo");
+
+        Optional<Usuario> existe = usuarioRepository.searchUsuarioById(usuario.getId());
+
+        if(existe.isEmpty()) throw new IllegalStateException("El usuario no existe");
+
+        if (usuario.getPassword().equals(existe.get().getPassword())) {
+            return usuarioRepository.save(usuario);
+        }
+
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        return usuarioRepository.save(usuario);
+
+    }
+    public boolean existeEmail(String email){
+        return usuarioRepository.existsByEmail(email);
+    }
+    public Optional<Usuario> buscarPorUsername(String username){
+        if(StringUtils.hasText(username)){
+            Optional<Usuario> usuario = usuarioRepository.searchUsuarioByNickname(username);
+
+            return usuario;
+        } else {
+            throw new IllegalArgumentException("username no introducido");
+        }
+    }
+    public Usuario desactivarUsuario(String email){
+        Usuario usuario = null;
+        if(StringUtils.hasText(email)){
+            if(!existeEmail(email)){
+                throw new IllegalStateException("El correo no existe");
+            }
+            usuario = obtenerUsuarioEmail(email);
+            if(usuario.isActivo()){
+                usuario.setActivo(false);
+            } else {
+                throw new IllegalStateException("El usuario ya esta inactivo");
+            }
+        }
+        return  usuarioRepository.save(usuario);
+    }
+
+}
