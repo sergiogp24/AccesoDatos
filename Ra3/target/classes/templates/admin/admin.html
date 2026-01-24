@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Administrador</title>
+    <link rel="stylesheet" th:href="@{/css/AdminController.css}">
+</head>
+<body>
+
+<div class="saludoUsuario">
+    <h2 id="saludoUsuario"></h2>
+</div>
+
+<div class="mostrarDatos" id="datosMostrar"></div>
+
+<div class="botonesAdmin">
+    <button id="btnUsuarios">Ver usuarios</button>
+    <button id="btnDepartamentos">Departamentos</button>
+    <button id="btnSalir">Salir</button>
+</div>
+
+<script th:src="@{/js/AdminController.js}"></script>
+</body>
+</html>
